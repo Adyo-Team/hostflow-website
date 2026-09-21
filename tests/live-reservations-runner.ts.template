@@ -1,0 +1,110 @@
+// Temporary Deno QA harness. NOT part of the application deployment or TS build.
+// Deploy only with explicit authorization; replace placeholders in memory.
+// After one run replace the deployed function with an inert 410 response.
+import { createClient } from "npm:@supabase/supabase-js@2.115.0";
+const ORG = "1b943d44-33dd-4af7-a425-dea699225603";
+const PROPERTY = "21bda859-d271-4547-8ddf-e00ca836a96a";
+const PROPERTY_B = "fddbac9c-f2a9-48f6-909c-cb022546ef2e";
+const OWNER = "907bc613-928f-482c-86a1-2eee7123b734";
+const FOREIGN_ORG = "642c9728-e871-4bd1-b284-150ac85d258a";
+const FOREIGN_PROPERTY = "deea1e91-0318-4503-9c54-bd0f77d12613";
+const AUTH_HASH = "__AUTH_HASH__";
+const EXPIRES = "__EXPIRES__";
+const RUN = "__RUN__";
+const USERS = ["__USER_A__", "__USER_B__"];
+let running = false;
+const must = (r: any) => { if (r.error) throw new Error(r.error.code + ":" + r.error.message); return r.data; };
+Deno.serve(async (req) => {
+  const token = req.headers.get("x-qa-token") || "";
+  const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token)))).map(v=>v.toString(16).padStart(2,"0")).join("");
+  if (req.method !== "POST" || digest !== AUTH_HASH || Date.now() > Date.parse(EXPIRES) || running) return new Response("Forbidden", {status:403});
+  running = true;
+  const url = Deno.env.get("SUPABASE_URL")!;
+  const options = {auth:{persistSession:false,autoRefreshToken:false}};
+  const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, options);
+  const key = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const clients: any[] = [], created: string[] = [], rows: {table:string,id:string,client:any}[] = [];
+  const results: any[] = [], cleanup: any[] = [];
+  let failure: string | null = null;
+  const check = (name: string, condition: boolean, evidence: any = undefined) => { results.push({name,passed:condition,evidence}); if(!condition) throw new Error(name); };
+  const reservation = (property_id=PROPERTY, check_in="2036-01-10",check_out="2036-01-15") => ({id:crypto.randomUUID(), organization_id:ORG,property_id,check_in,check_out,status:"confirmed",source:"manual",guest_name:`QA ${RUN}`,guests_count:1});
+  const block = (start_date="2036-01-10",end_date="2036-01-15") => ({id:crypto.randomUUID(),organization_id:ORG,property_id:PROPERTY,start_date,end_date,reason:"internal",notes:`QA ${RUN}`});
+  const insert = async (client:any,table:string,row:any) => {
+    const start = Date.now();
+    const r = await client.from(table).insert(row).select("id");
+    const end = Date.now();
+    if(!r.error) rows.push({client,table,id:row.id});
+    return {status:r.status,code:r.error?.code || null,start,end,id:row.id};
+  };
+  const releaseAll = async () => { for(const r of rows) must(await r.client.from(r.table).update(r.table==="reservations"?{status:"cancelled"}:{active:false}).eq("id",r.id)); };
+  try {
+    for(let i=0;i<2;i++) {
+      const email = `hostflow-qa-${RUN}-${i}@example.com`;
+      const password = crypto.randomUUID()+"aA1!";
+      const u = must(await admin.auth.admin.createUser({id:USERS[i],email,password,email_confirm:true,app_metadata:{qa_run:RUN}}));
+      created.push(u.user.id);
+      must(await admin.from("organization_members").insert({organization_id:ORG,user_id:u.user.id,display_name:`QA ${RUN} ${i}`,role:"manager",created_by:OWNER}));
+      const client = createClient(url,key,options);
+      must(await client.auth.signInWithPassword({email,password}));
+      clients.push(client);
+    }
+    check("two independent authenticated sessions",created.length===2 && created[0]!==created[1]);
+    for(let wave=0;wave<5;wave++) {
+      const p = await Promise.all([insert(clients[0],"reservations",reservation()),insert(clients[1],"reservations",reservation())]);
+      check(`parallel reservation/reservation ${wave+1}`, p.filter(r=>r.status===201).length===1 && p.filter(r=>r.code==="23P01").length===1 && Math.max(...p.map(r=>r.start)) < Math.min(...p.map(r=>r.end)),p);
+      const data = must(await clients[0].from("reservations").select("id").eq("organization_id",ORG).eq("guest_name",`QA ${RUN}`).eq("status","confirmed"));
+      check(`exactly one active row ${wave+1}`,data.length===1);
+      await releaseAll();
+    }
+    for(let wave=0;wave<2;wave++) {
+      const p = await Promise.all(wave===0 ? [insert(clients[0],"reservations",reservation()),insert(clients[1],"property_blocks",block())] : [insert(clients[0],"property_blocks",block()),insert(clients[1],"reservations",reservation())]);
+      check(`parallel cross-table ${wave+1}`,p.filter(r=>r.status===201).length===1 && p.filter(r=>r.code==="23P01").length===1 && Math.max(...p.map(r=>r.start)) < Math.min(...p.map(r=>r.end)),p);
+      await releaseAll();
+    }
+    const a=reservation(); check("valid reservation",(await insert(clients[0],"reservations",a)).status===201);
+    check("adjacent checkout/checkin",(await insert(clients[1],"reservations",reservation(PROPERTY,"2036-01-15","2036-01-20"))).status===201);
+    check("different properties same dates",(await insert(clients[1],"reservations",reservation(PROPERTY_B))).status===201);
+    check("conflicting edit rejected",(await clients[0].from("reservations").update({check_out:"2036-01-16"}).eq("id",a.id)).error?.code==="23P01");
+    check("valid edit",!(await clients[0].from("reservations").update({check_in:"2036-01-09"}).eq("id",a.id)).error);
+    check("block on reservation rejected",(await insert(clients[1],"property_blocks",block())).code==="23P01");
+    await releaseAll();
+    check("block after cancellation",(await insert(clients[1],"property_blocks",block())).status===201);
+    check("reservation on block rejected",(await insert(clients[0],"reservations",reservation())).code==="23P01");
+    for(const table of ["reservations","property_blocks"]) {
+      const read=await clients[0].from(table).select("id").eq("organization_id",FOREIGN_ORG);
+      check(`foreign ${table} read hidden`,!read.error && read.data.length===0);
+      const write = table==="reservations" ? {...reservation(FOREIGN_PROPERTY),organization_id:FOREIGN_ORG} : {...block(),organization_id:FOREIGN_ORG,property_id:FOREIGN_PROPERTY};
+      check(`foreign ${table} insert denied`,(await insert(clients[0],table,write)).code==="42501");
+      const update=await clients[0].from(table).update(table==="reservations"?{status:"cancelled"}:{active:false}).eq("organization_id",FOREIGN_ORG).select("id");
+      check(`foreign ${table} update hidden`,!update.error && update.data.length===0);
+      check(`direct ${table} delete denied`,(await clients[0].from(table).delete().eq("organization_id",FOREIGN_ORG)).error?.code==="42501");
+    }
+    await releaseAll();
+    must(await admin.from("organization_members").update({role:"staff"}).eq("organization_id",ORG).eq("user_id",created[1]));
+    for(const table of ["reservations","property_blocks"]) {
+      const r=await clients[1].from(table).select("id").eq("organization_id",ORG);
+      check(`staff ${table} read hidden`,!r.error && r.data.length===0);
+      check(`staff ${table} insert denied`,(await insert(clients[1],table,table==="reservations"?reservation():block())).code==="42501");
+    }
+  } catch(e) {failure=String(e);} finally {
+    // Restore only the temporary QA memberships to permit cancellation cleanup.
+    for(const uid of created) {
+      const r=await admin.from("organization_members").update({role:"manager"}).eq("organization_id",ORG).eq("user_id",uid);
+      if(r.error) cleanup.push({stage:"restore role",uid,error:r.error.message});
+    }
+    for(const r of rows) {
+      const cancel=await r.client.from(r.table).update(r.table==="reservations"?{status:"cancelled"}:{active:false}).eq("id",r.id);
+      if(cancel.error) {cleanup.push({stage:"cancel",id:r.id,error:cancel.error.message});continue;}
+      const del=await admin.from(r.table).delete().eq("organization_id",ORG).eq("id",r.id);
+      if(del.error) cleanup.push({stage:"delete fixture",id:r.id,error:del.error.message});
+    }
+    for(const client of clients) {const r=await client.auth.signOut({scope:"global"});if(r.error)cleanup.push({stage:"signout",error:r.error.message});}
+    for(const uid of created) {
+      const m=await admin.from("organization_members").delete().eq("organization_id",ORG).eq("user_id",uid);
+      if(m.error) cleanup.push({stage:"delete membership",uid,error:m.error.message});
+      const u=await admin.auth.admin.deleteUser(uid);
+      cleanup.push({stage:"delete auth user",uid,passed:!u.error,error:u.error?.message});
+    }
+  }
+  return Response.json({run:RUN,results,failure,cleanup,passed:!failure&&cleanup.every(r=>!r.error)},{headers:{"Cache-Control":"no-store"}});
+});

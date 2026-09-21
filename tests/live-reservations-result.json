@@ -1,0 +1,263 @@
+{
+  "run": "mubbwzqm",
+  "results": [
+    {
+      "name": "two independent authenticated sessions",
+      "passed": true
+    },
+    {
+      "name": "parallel reservation/reservation 1",
+      "passed": true,
+      "evidence": [
+        {
+          "status": 400,
+          "code": "23P01",
+          "start": 1790000322144,
+          "end": 1790000323717,
+          "id": "3fdda11d-ebcf-4bb1-a56b-95a0d2c1349b"
+        },
+        {
+          "status": 201,
+          "code": null,
+          "start": 1790000322144,
+          "end": 1790000323707,
+          "id": "fa6f8172-de96-4f98-85d0-b12492550af0"
+        }
+      ]
+    },
+    {
+      "name": "exactly one active row 1",
+      "passed": true
+    },
+    {
+      "name": "parallel reservation/reservation 2",
+      "passed": true,
+      "evidence": [
+        {
+          "status": 201,
+          "code": null,
+          "start": 1790000324097,
+          "end": 1790000324271,
+          "id": "b00fc09f-7eef-49ba-97e2-7823af881aab"
+        },
+        {
+          "status": 400,
+          "code": "23P01",
+          "start": 1790000324097,
+          "end": 1790000324277,
+          "id": "51a881ea-7bd9-4c81-8202-e7f395074b2d"
+        }
+      ]
+    },
+    {
+      "name": "exactly one active row 2",
+      "passed": true
+    },
+    {
+      "name": "parallel reservation/reservation 3",
+      "passed": true,
+      "evidence": [
+        {
+          "status": 201,
+          "code": null,
+          "start": 1790000324790,
+          "end": 1790000324974,
+          "id": "55c94f18-e82a-42fd-809d-ebd3b26a64e6"
+        },
+        {
+          "status": 400,
+          "code": "23P01",
+          "start": 1790000324791,
+          "end": 1790000325246,
+          "id": "0b7b968d-ea81-4d62-b2f1-c24804d6fed2"
+        }
+      ]
+    },
+    {
+      "name": "exactly one active row 3",
+      "passed": true
+    },
+    {
+      "name": "parallel reservation/reservation 4",
+      "passed": true,
+      "evidence": [
+        {
+          "status": 400,
+          "code": "23P01",
+          "start": 1790000325937,
+          "end": 1790000326108,
+          "id": "36ec871f-c617-4981-80f1-398d64a5a710"
+        },
+        {
+          "status": 201,
+          "code": null,
+          "start": 1790000325937,
+          "end": 1790000326108,
+          "id": "4e21a019-59ef-449f-8945-282efd1d012b"
+        }
+      ]
+    },
+    {
+      "name": "exactly one active row 4",
+      "passed": true
+    },
+    {
+      "name": "parallel reservation/reservation 5",
+      "passed": true,
+      "evidence": [
+        {
+          "status": 400,
+          "code": "23P01",
+          "start": 1790000327255,
+          "end": 1790000327438,
+          "id": "a8ba69fb-06d0-4506-b4cd-505846780c78"
+        },
+        {
+          "status": 201,
+          "code": null,
+          "start": 1790000327255,
+          "end": 1790000327438,
+          "id": "372a0fc5-92fe-4574-985e-1db0add7bd85"
+        }
+      ]
+    },
+    {
+      "name": "exactly one active row 5",
+      "passed": true
+    },
+    {
+      "name": "parallel cross-table 1",
+      "passed": true,
+      "evidence": [
+        {
+          "status": 201,
+          "code": null,
+          "start": 1790000328786,
+          "end": 1790000328969,
+          "id": "073358cf-f37e-4539-a3ee-bed9045d6b3d"
+        },
+        {
+          "status": 400,
+          "code": "23P01",
+          "start": 1790000328786,
+          "end": 1790000328973,
+          "id": "fc2b0df2-a0df-4eb9-bbe5-5bd45b2f4625"
+        }
+      ]
+    },
+    {
+      "name": "parallel cross-table 2",
+      "passed": true,
+      "evidence": [
+        {
+          "status": 201,
+          "code": null,
+          "start": 1790000330002,
+          "end": 1790000330173,
+          "id": "1e1bbf16-a3b7-489b-af7b-ad84fd32b3be"
+        },
+        {
+          "status": 400,
+          "code": "23P01",
+          "start": 1790000330002,
+          "end": 1790000330178,
+          "id": "cedf3419-1d7c-4393-88e4-f582a6c224f5"
+        }
+      ]
+    },
+    {
+      "name": "valid reservation",
+      "passed": true
+    },
+    {
+      "name": "adjacent checkout/checkin",
+      "passed": true
+    },
+    {
+      "name": "different properties same dates",
+      "passed": true
+    },
+    {
+      "name": "conflicting edit rejected",
+      "passed": true
+    },
+    {
+      "name": "valid edit",
+      "passed": true
+    },
+    {
+      "name": "block on reservation rejected",
+      "passed": true
+    },
+    {
+      "name": "block after cancellation",
+      "passed": true
+    },
+    {
+      "name": "reservation on block rejected",
+      "passed": true
+    },
+    {
+      "name": "foreign reservations read hidden",
+      "passed": true
+    },
+    {
+      "name": "foreign reservations insert denied",
+      "passed": true
+    },
+    {
+      "name": "foreign reservations update hidden",
+      "passed": true
+    },
+    {
+      "name": "direct reservations delete denied",
+      "passed": true
+    },
+    {
+      "name": "foreign property_blocks read hidden",
+      "passed": true
+    },
+    {
+      "name": "foreign property_blocks insert denied",
+      "passed": true
+    },
+    {
+      "name": "foreign property_blocks update hidden",
+      "passed": true
+    },
+    {
+      "name": "direct property_blocks delete denied",
+      "passed": true
+    },
+    {
+      "name": "staff reservations read hidden",
+      "passed": true
+    },
+    {
+      "name": "staff reservations insert denied",
+      "passed": true
+    },
+    {
+      "name": "staff property_blocks read hidden",
+      "passed": true
+    },
+    {
+      "name": "staff property_blocks insert denied",
+      "passed": true
+    }
+  ],
+  "failure": null,
+  "cleanup": [
+    {
+      "stage": "delete auth user",
+      "uid": "fa6f79ae-26e8-4ab8-99a8-94cd8008f1ad",
+      "passed": true
+    },
+    {
+      "stage": "delete auth user",
+      "uid": "768d0d98-535c-4771-a52c-79bbe188294a",
+      "passed": true
+    }
+  ],
+  "passed": true
+}

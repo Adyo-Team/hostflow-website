@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/favicon.svg">
+<title>HostFlow — contrôle responsive</title>
+<style>
+  body{font:16px system-ui;margin:20px;background:#edf2ef;color:#123e32}
+  form{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px}
+  input,select,button{font:inherit;padding:8px;border:1px solid #b8c9bf;border-radius:6px}
+  input{width:420px;max-width:80vw} iframe{display:block;background:white;border:1px solid #b8c9bf;height:800px}
+</style>
+<h1>Contrôle responsive</h1>
+<p>Application publiée, session habituelle et données réelles. Aucun accès supplémentaire.</p>
+<form id="controls">
+  <label>Largeur <select id="width"><option value="390">Mobile · 390 px</option><option value="768">Tablette · 768 px</option><option value="1440">Desktop · 1440 px</option></select></label>
+  <label>Route <input id="route" value="/properties" required></label>
+  <button>Ouvrir la route</button>
+</form>
+<iframe id="application" title="HostFlow à largeur contrôlée" src="/properties" width="390"></iframe>
+<script>
+  const frame=document.querySelector('#application');
+  document.querySelector('#width').addEventListener('change',event=>{frame.width=event.target.value});
+  document.querySelector('#controls').addEventListener('submit',event=>{
+    event.preventDefault();const route=document.querySelector('#route').value;
+    if(/^\/(?:properties(?:\/[a-zA-Z0-9-]+(?:\/edit)?)?(?:\?step=photos)?|team|roles|settings)?$/.test(route))frame.src=route;
+  });
+</script>
+</html>

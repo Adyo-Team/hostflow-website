@@ -1,0 +1,3 @@
+-- Intentionally empty.
+-- HostFlow does not copy production tenants, users, reservations or credentials
+-- into local development. Create disposable local fixtures when needed.
