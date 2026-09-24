@@ -19,6 +19,7 @@ import type { Mutation } from "@/lib/hostflow/validation";
 import { useHostFlowTools } from "./webmcp";
 import { Navigation } from "./navigation";
 import { Dashboard } from "./dashboard";
+import { CalendarModule } from "./calendar/module";
 import { PropertiesModule, type PropertiesView } from "./properties/module";
 import {
   ReservationsModule,
@@ -36,6 +37,7 @@ const pageLabels: Record<Page, string> = {
   roles: "Rôles et accès",
   properties: "Logements",
   reservations: "Réservations",
+  calendar: "Calendrier",
 };
 export function HostFlowApp({
   page,
@@ -160,7 +162,7 @@ export function HostFlowApp({
             <span className="font-medium">{pageLabels[page]}</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="hf-tag hidden lg:inline-flex">HostFlow v0.4.1</span>
+            <span className="hf-tag hidden lg:inline-flex">HostFlow v0.5</span>
             <Button
               size="icon"
               variant="ghost"
@@ -254,6 +256,7 @@ export function HostFlowApp({
                 />
               )}
               {page === "roles" && <Roles />}
+              {page === "calendar" && <CalendarModule key={active?.organization_id} active={active} />}
               {page === "reservations" && (
                 <ReservationsModule
                   key={[
@@ -284,7 +287,7 @@ export function HostFlowApp({
         </div>
         <footer className="mt-auto flex justify-between gap-4 px-6 md:px-10 py-5 text-xs text-[#81908b]">
           <span>HostFlow · Tout commence par un espace bien organisé.</span>
-          <span className="hidden sm:block">Réservations · v0.4.1</span>
+          <span className="hidden sm:block">Calendar Core · v0.5</span>
         </footer>
       </SidebarInset>
       <Roadmap open={roadmap} onOpenChange={setRoadmap} />

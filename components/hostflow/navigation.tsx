@@ -51,7 +51,6 @@ import {
   type Membership,
 } from "@/lib/hostflow/types";
 const upcoming: [string, LucideIcon][] = [
-  ["Calendrier", CalendarDays],
   ["Propriétaires", UserRound],
 ];
 export function Navigation({
@@ -199,6 +198,7 @@ export function Navigation({
             !active || !canEditProperties(active.role),
           )}
           {upcoming.map(([label, Icon]) => future(label, Icon))}
+          {link("Calendrier", CalendarDays, "/calendar", "calendar", !active || !canEditProperties(active.role))}
         </SidebarMenu>
         <div className="hf-nav-label">Opérations</div>
         <SidebarMenu className="gap-1">

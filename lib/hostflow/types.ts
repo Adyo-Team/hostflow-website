@@ -4,7 +4,7 @@ export type Role = (typeof roles)[number];
 export type FutureRole = "property_owner" | "guest";
 export type StoredRole = Role | FutureRole;
 export type MemberStatus = "active" | "suspended";
-export type Page = "dashboard" | "team" | "settings" | "roles" | "properties" | "reservations";
+export type Page = "dashboard" | "team" | "settings" | "roles" | "properties" | "reservations" | "calendar";
 export const roleLabels: Record<StoredRole, string> = {
   owner: "Propriétaire de l’organisation",
   admin: "Administrateur",

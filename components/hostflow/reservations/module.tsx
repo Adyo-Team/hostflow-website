@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { validDate } from "@/lib/calendar/dates.mjs";
 import { Plus, ArrowLeft, CalendarDays, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -457,9 +458,13 @@ function ReservationForm({
     properties: PropertyOption[];
   }>("/options", active.organization_id);
   const [id] = useState(() => initial?.id || createId());
-  const [property, setProperty] = useState(initial?.property_id || "");
-  const [arrival, setArrival] = useState(initial?.check_in || "");
-  const [departure, setDeparture] = useState(initial?.check_out || "");
+  const calendarParams = useSearchParams();
+  const calendarProperty = calendarParams.get("property_id") || "";
+  const calendarArrival = calendarParams.get("check_in") || "";
+  const calendarDeparture = calendarParams.get("check_out") || "";
+  const [property, setProperty] = useState(initial?.property_id || (/^[0-9a-f-]{36}$/i.test(calendarProperty) ? calendarProperty : ""));
+  const [arrival, setArrival] = useState(initial?.check_in || (validDate(calendarArrival) ? calendarArrival : ""));
+  const [departure, setDeparture] = useState(initial?.check_out || (validDate(calendarDeparture) && calendarDeparture > calendarArrival ? calendarDeparture : ""));
   const [name, setName] = useState(initial?.guest_name || "");
   const [email, setEmail] = useState(initial?.guest_email || "");
   const [phone, setPhone] = useState(initial?.guest_phone || "");

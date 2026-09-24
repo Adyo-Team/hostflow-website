@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "../vendor/shadcn-tailwind-4.13.0.css";
+@layer components {
+  .hf-calendar-grid { display: grid; width: max-content; min-width: 100%; --calendar-property-width: 190px; }
+  @media (max-width: 640px) { .hf-calendar-grid { --calendar-property-width: 125px; } }
+}
 
 @utility scrollbar-thin {
   scrollbar-width: thin;
