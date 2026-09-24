@@ -1,4 +1,5 @@
 "use client";
+import { PageHeader } from "./ui";
 import { ShieldCheck, Users, UserRound } from "lucide-react";
 export function Roles() {
   const data: [string, string, string, string][] = [
@@ -41,13 +42,11 @@ export function Roles() {
   ];
   return (
     <>
-      <div className="mb-7">
-        <div className="hf-overline mb-3">Sécurité et collaboration</div>
-        <h1 className="hf-heading">Rôles et accès</h1>
-        <p className="hf-subtitle">
-          Un rôle s’applique à une organisation. Les accès restent séparés.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Sécurité et collaboration"
+        title="Rôles et accès"
+        description="Un rôle s’applique à une organisation. Les accès restent séparés."
+      />
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
         {data.map(([name, scope, level, description], i) => (
           <section className="hf-panel p-6" key={name}>

@@ -2,8 +2,7 @@
 import Link from "next/link";
 import { Building2 } from "lucide-react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button, StatusBadge, PageLoading } from "@/components/hostflow/ui";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -21,18 +20,17 @@ import {
 } from "@/lib/properties/types";
 export function PropertyStatusBadge({ status }: { status: PropertyStatus }) {
   return (
-    <span
-      className={
-        "inline-flex rounded-full px-3 py-1 text-xs font-semibold " +
-        {
-          active: "bg-[#e5f3eb] text-[#246747]",
-          inactive: "bg-[#f4f0e7] text-[#7c6338]",
-          archived: "bg-[#eef0f1] text-[#69777a]",
-        }[status]
+    <StatusBadge
+      tone={
+        status === "active"
+          ? "success"
+          : status === "inactive"
+            ? "warning"
+            : "neutral"
       }
     >
       {statusLabels[status]}
-    </span>
+    </StatusBadge>
   );
 }
 export function PropertyPhoto({
@@ -65,21 +63,19 @@ export function PropertyPhoto({
     </div>
   );
 }
-export function PropertyLoading() {
+export function PropertyLoading({
+  variant = "list",
+  header = true,
+}: {
+  variant?: "list" | "detail" | "form";
+  header?: boolean;
+}) {
   return (
-    <div
-      role="status"
-      aria-label="Chargement des logements"
-      className="space-y-5"
-    >
-      <Skeleton className="h-12 w-64" />
-      <Skeleton className="h-20 w-full" />
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {[1, 2, 3].map((n) => (
-          <Skeleton key={n} className="h-72" />
-        ))}
-      </div>
-    </div>
+    <PageLoading
+      label="Chargement des logements"
+      variant={variant}
+      header={header}
+    />
   );
 }
 export function PropertyFailure({

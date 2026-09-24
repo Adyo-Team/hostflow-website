@@ -19,7 +19,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, PageHeader } from "@/components/hostflow/ui";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "./shared";
 import {
@@ -69,23 +69,23 @@ export function Dashboard({
   const count = milestones.filter((s) => s.done).length;
   return (
     <>
-      <div className="flex items-start justify-between gap-4 mb-7">
-        <div>
-          <div className="hf-overline mb-3">Votre espace de pilotage</div>
-          <h1 className="hf-heading">Vue d’ensemble</h1>
-          <p className="hf-subtitle">
-            {active
-              ? "Bonjour " +
-                active.display_name.split(" ")[0] +
-                ". Voici votre espace de travail."
-              : "Bienvenue sur HostFlow. Faisons place à une gestion plus simple."}
-          </p>
-        </div>
-        <div className="hidden lg:flex items-center gap-2 rounded-lg border bg-white px-3.5 py-2.5 mt-5 text-[13px] text-[#65736d]">
-          <CalendarDays className="size-4" />
-          <span className="capitalize">{date}</span>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Votre espace de pilotage"
+        title="Vue d’ensemble"
+        description={
+          active
+            ? "Bonjour " +
+              active.display_name.split(" ")[0] +
+              ". Voici votre espace de travail."
+            : "Bienvenue sur HostFlow. Faisons place à une gestion plus simple."
+        }
+        actions={
+          <div className="hidden lg:flex items-center gap-2 rounded-lg border bg-white px-3.5 py-2.5 text-sm hf-muted">
+            <CalendarDays className="size-4" />
+            <span className="capitalize">{date}</span>
+          </div>
+        }
+      />
       {active && (
         <div className="flex flex-wrap items-center gap-2 text-sm hf-muted mb-5">
           <Building2 className="size-4" />

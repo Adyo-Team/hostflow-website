@@ -2,8 +2,17 @@
 @import "tw-animate-css";
 @import "../vendor/shadcn-tailwind-4.13.0.css";
 @layer components {
-  .hf-calendar-grid { display: grid; width: max-content; min-width: 100%; --calendar-property-width: 190px; }
-  @media (max-width: 640px) { .hf-calendar-grid { --calendar-property-width: 125px; } }
+  .hf-calendar-grid {
+    display: grid;
+    width: max-content;
+    min-width: 100%;
+    --calendar-property-width: 190px;
+  }
+  @media (max-width: 640px) {
+    .hf-calendar-grid {
+      --calendar-property-width: 125px;
+    }
+  }
 }
 
 @utility scrollbar-thin {
@@ -23,6 +32,18 @@
 }
 
 :root {
+  --hf-radius-control: 8px;
+  --hf-radius-panel: 14px;
+  --hf-content-width: 1510px;
+  --hf-control-height: 44px;
+  --hf-panel-padding: 24px;
+  --hf-soft-surface: #fbfcfb;
+  --hf-success-bg: #e5f3eb;
+  --hf-success-text: #246747;
+  --hf-warning-bg: #f4f0e7;
+  --hf-warning-text: #7c6338;
+  --hf-neutral-bg: #eef0f1;
+  --hf-neutral-text: #69777a;
   --background: #f6f8f9;
   --foreground: #182b2b;
   --card: #ffffff;
@@ -146,12 +167,12 @@ button:disabled {
 .hf-panel {
   background: white;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--hf-radius-panel);
 }
 .hf-page {
-  max-width: 1510px;
+  max-width: var(--hf-content-width);
   width: 100%;
-  margin: auto;
+  margin: 0 auto;
   padding: 34px 38px 40px;
 }
 .hf-heading {
@@ -183,7 +204,7 @@ button:disabled {
 }
 .hf-nav-button {
   height: 43px;
-  border-radius: 8px;
+  border-radius: var(--hf-radius-control);
   gap: 11px;
   padding: 0 13px;
   font-size: 14px;
@@ -241,7 +262,7 @@ button:disabled {
 .hf-banner {
   background: #103d35;
   color: #fff;
-  border-radius: 14px;
+  border-radius: var(--hf-radius-panel);
   padding: 27px 29px;
   display: flex;
   justify-content: space-between;
@@ -318,9 +339,9 @@ button:disabled {
   font-weight: 600;
 }
 .hf-field input {
-  height: 43px;
-  font-size: 15px;
-  border-radius: 8px;
+  height: var(--hf-control-height);
+  font-size: 16px;
+  border-radius: var(--hf-radius-control);
   background: #fff;
 }
 .hf-form {
@@ -364,7 +385,7 @@ button:disabled {
   color: #a43333;
   background: #fef2f2;
   border: 1px solid #f0cece;
-  border-radius: 8px;
+  border-radius: var(--hf-radius-control);
   padding: 12px 14px;
   font-size: 14px;
   line-height: 1.6;
@@ -373,7 +394,7 @@ button:disabled {
   color: #176448;
   background: #edf8f1;
   border: 1px solid #cfebd8;
-  border-radius: 8px;
+  border-radius: var(--hf-radius-control);
   padding: 12px 14px;
   font-size: 14px;
   line-height: 1.6;
@@ -459,7 +480,134 @@ button:disabled {
 
 /* Keep the existing mobile auth composition on tablet widths too. */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .hf-auth { display: block; }
-  .hf-auth-aside { display: none; }
-  .hf-auth-main { min-height: 100svh; padding: 30px 24px; }
+  .hf-auth {
+    display: block;
+  }
+  .hf-auth-aside {
+    display: none;
+  }
+  .hf-auth-main {
+    min-height: 100svh;
+    padding: 30px 24px;
+  }
+}
+
+/* Stable document geometry, shared by every authenticated route. */
+html {
+  scrollbar-gutter: stable;
+}
+.hf-shell-main {
+  align-self: stretch;
+}
+.hf-page {
+  min-width: 0;
+  flex: 1 0 auto;
+}
+.hf-form-panel {
+  max-width: 64rem;
+}
+.hf-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.hf-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+}
+.hf-button {
+  border-radius: var(--hf-radius-control);
+}
+.hf-field {
+  min-width: 0;
+}
+.hf-field [data-slot="select-trigger"] {
+  min-height: var(--hf-control-height);
+  height: auto;
+  background: var(--card);
+  border-radius: var(--hf-radius-control);
+  font-size: 16px;
+}
+.hf-field textarea {
+  background: var(--card);
+  border-radius: var(--hf-radius-control);
+  min-height: 100px;
+  font-size: 16px;
+}
+.hf-filter-bar {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--hf-soft-surface);
+}
+.hf-filter-bar.hf-filter-inline {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.hf-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.hf-status-success {
+  background: var(--hf-success-bg);
+  color: var(--hf-success-text);
+}
+.hf-status-warning {
+  background: var(--hf-warning-bg);
+  color: var(--hf-warning-text);
+}
+.hf-status-neutral {
+  background: var(--hf-neutral-bg);
+  color: var(--hf-neutral-text);
+}
+.hf-loading {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.hf-loading-header {
+  display: grid;
+  gap: 12px;
+  min-height: 100px;
+}
+.hf-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  font-size: 14px;
+}
+.hf-pagination-embedded {
+  margin-top: 0;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--hf-soft-surface);
+}
+@media (max-width: 767px) {
+  .hf-page-actions {
+    width: 100%;
+  }
+  .hf-page-actions > * {
+    max-width: 100%;
+  }
+  .hf-field input {
+    min-width: 0;
+    max-width: 100%;
+  }
 }

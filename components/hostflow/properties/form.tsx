@@ -11,7 +11,7 @@ import {
   Save,
   LockKeyhole,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, PageHeader } from "@/components/hostflow/ui";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -134,7 +134,7 @@ export function PropertyForm({
   const { data, error, loading, reload } = usePropertyResource<
     PropertyDetail | Amenity[]
   >(id ? "/" + id : "/catalog", active.organization_id);
-  if (loading && !data) return <PropertyLoading />;
+  if (loading && !data) return <PropertyLoading variant="form" />;
   if (error) return <PropertyFailure error={error} retry={reload} />;
   if (!data) return null;
   const initial = Array.isArray(data) ? undefined : data;
@@ -416,15 +416,15 @@ function PropertyEditor({
         <ArrowLeft className="size-4" />
         {version === null ? "Tous les logements" : "Retour à la fiche"}
       </Link>
-      <div className="mb-7">
-        <div className="hf-overline mb-3">Votre portefeuille</div>
-        <h1 className="hf-heading">
-          {version === null ? "Ajouter un logement" : "Modifier le logement"}
-        </h1>
-        <p className="hf-subtitle">
-          {form.name || "Rassemblez les informations utiles à votre équipe."}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Votre portefeuille"
+        title={
+          version === null ? "Ajouter un logement" : "Modifier le logement"
+        }
+        description={
+          form.name || "Rassemblez les informations utiles à votre équipe."
+        }
+      />
       <div className="grid lg:grid-cols-[220px_minmax(0,1fr)] gap-6 items-start">
         <nav aria-label="Étapes du formulaire" className="hf-panel p-3">
           <ol className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-1">

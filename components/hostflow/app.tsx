@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight, CircleHelp, ShieldCheck, UserRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, PageLoading } from "@/components/hostflow/ui";
 import {
   SidebarInset,
   SidebarProvider,
@@ -148,7 +148,7 @@ export function HostFlowApp({
         }}
         busy={busy}
       />
-      <SidebarInset className="min-w-0 bg-background">
+      <SidebarInset className="hf-shell-main min-w-0 bg-background">
         <header className="flex h-[76px] items-center justify-between gap-3 border-b bg-white px-5 md:px-9">
           <div className="flex items-center gap-3 text-sm">
             <SidebarTrigger
@@ -172,18 +172,27 @@ export function HostFlowApp({
               <CircleHelp className="size-[19px] text-[#6e7e7a]" />
             </Button>
             <span className="h-6 w-px bg-border hidden lg:inline" />
-            <Link
-              prefetch={false}
-              href={state.user ? "/settings" : "/login"}
-              aria-label={state.user ? "Mon compte" : "Se connecter"}
-              className="hf-avatar"
-            >
-              {active ? (
-                initials(active.display_name)
+            <>
+              {loading ? (
+                <Skeleton
+                  className="size-[34px] rounded-full"
+                  aria-label="Vérification du compte"
+                />
               ) : (
-                <UserRound className="size-4" />
+                <Link
+                  prefetch={false}
+                  href={state.user ? "/settings" : "/login"}
+                  aria-label={state.user ? "Mon compte" : "Se connecter"}
+                  className="hf-avatar"
+                >
+                  {active ? (
+                    initials(active.display_name)
+                  ) : (
+                    <UserRound className="size-4" />
+                  )}
+                </Link>
               )}
-            </Link>
+            </>
           </div>
         </header>
         <div id="main" className="hf-page">
@@ -202,15 +211,21 @@ export function HostFlowApp({
             </div>
           ) : null}
           {loading ? (
-            <div aria-label="Chargement de votre espace" className="grid gap-6">
-              <Skeleton className="h-20 w-2/3" />
-              <Skeleton className="h-36 w-full" />
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {[0, 1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-36" />
-                ))}
-              </div>
-            </div>
+            <PageLoading
+              label="Chargement de votre espace"
+              variant={
+                page === "dashboard"
+                  ? "dashboard"
+                  : propertyView === "new" ||
+                      propertyView === "edit" ||
+                      reservationView === "new" ||
+                      reservationView === "edit"
+                    ? "form"
+                    : propertyView === "detail" || reservationView === "detail"
+                      ? "detail"
+                      : "list"
+              }
+            />
           ) : (!error || !!state.user) &&
             (!state.configured || state.user) &&
             (!state.configured ||
@@ -256,7 +271,9 @@ export function HostFlowApp({
                 />
               )}
               {page === "roles" && <Roles />}
-              {page === "calendar" && <CalendarModule key={active?.organization_id} active={active} />}
+              {page === "calendar" && (
+                <CalendarModule key={active?.organization_id} active={active} />
+              )}
               {page === "reservations" && (
                 <ReservationsModule
                   key={[

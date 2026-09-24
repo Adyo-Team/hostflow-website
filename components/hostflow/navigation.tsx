@@ -23,7 +23,7 @@ import {
   Wrench,
   type LucideIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/hostflow/ui";
 import {
   Sidebar,
   SidebarContent,
@@ -240,7 +240,7 @@ export function Navigation({
                 ? "Chargement…"
                 : (active?.display_name ?? "Votre compte")}
             </div>
-            <div className="text-[11px] text-[#839089] mt-1 truncate">
+            <div className="text-[11px] text-[#839089] mt-1 min-h-4 truncate">
               {loading
                 ? ""
                 : active

@@ -9,7 +9,7 @@ import {
   ArrowRight,
   LoaderCircle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/hostflow/ui";
 import { EmptyState } from "../shared";
 import {
   MAX_PHOTO_BYTES,

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ArrowRight, Building2, LogOut, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/hostflow/ui";
 import { Field } from "./shared";
 import { mutate } from "./client";
 import { invitationToken } from "@/lib/hostflow/invitations";
