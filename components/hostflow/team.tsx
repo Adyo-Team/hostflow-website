@@ -1,4 +1,5 @@
 "use client";
+import { PageHeader } from "@/components/hostflow/ui";
 import { useState } from "react";
 import {
   ChevronDown,
@@ -9,7 +10,7 @@ import {
   Plus,
   ShieldCheck,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/hostflow/ui";
 import {
   Dialog,
   DialogContent,
@@ -77,29 +78,29 @@ export function Team({
   const [confirm, setConfirm] = useState<Membership | null>(null);
   return (
     <>
-      <div className="flex flex-wrap justify-between gap-4 items-center mb-7">
-        <div>
-          <div className="hf-overline mb-3">Travailler ensemble</div>
-          <h1 className="hf-heading">Votre équipe</h1>
-          <p className="hf-subtitle">
-            Les bonnes personnes, avec les bons accès.
-          </p>
-        </div>
-        {canManageTeam(active?.role) && (
-          <Button
-            onClick={() => {
-              setInviteUrl("");
-              setEmail("");
-              setRole("staff");
-              setInviteOpen(true);
-            }}
-            className="h-11 rounded-lg"
-          >
-            <Plus />
-            Inviter un membre
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        eyebrow="Travailler ensemble"
+        title="Votre équipe"
+        description="Les bonnes personnes, avec les bons accès."
+        actions={
+          <>
+            {canManageTeam(active?.role) && (
+              <Button
+                onClick={() => {
+                  setInviteUrl("");
+                  setEmail("");
+                  setRole("staff");
+                  setInviteOpen(true);
+                }}
+                className="h-11 rounded-lg"
+              >
+                <Plus />
+                Inviter un membre
+              </Button>
+            )}
+          </>
+        }
+      />
       {active &&
         canManageTeam(active.role) &&
         !active.organization?.team_setup_completed_at && (

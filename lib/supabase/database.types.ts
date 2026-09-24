@@ -1,3 +1,4 @@
+import type { Task } from "@/lib/tasks/types";
 import type { Property, Amenity, PropertyImage } from "@/lib/properties/types";
 import type { Reservation, PropertyBlock } from "@/lib/reservations/types";
 import type {
@@ -21,6 +22,7 @@ type OrgId = { p_organization_id: string };
 export type Database = {
   public: {
     Tables: {
+      tasks: Table<Task>;
       reservations: Table<Reservation>;
       property_blocks: Table<PropertyBlock>;
       properties: Table<Property & { search_text: string }>;
@@ -52,6 +54,7 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      task_property_names: Rpc<OrgId, { id: string; name: string }[]>;
       save_property: Rpc<
         OrgId & {
           p_id: string;

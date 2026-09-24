@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight, CircleHelp, ShieldCheck, UserRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, PageLoading } from "@/components/hostflow/ui";
 import {
   SidebarInset,
   SidebarProvider,
@@ -19,6 +19,8 @@ import type { Mutation } from "@/lib/hostflow/validation";
 import { useHostFlowTools } from "./webmcp";
 import { Navigation } from "./navigation";
 import { Dashboard } from "./dashboard";
+import { TasksModule } from "./tasks/module";
+import { CalendarModule } from "./calendar/module";
 import { PropertiesModule, type PropertiesView } from "./properties/module";
 import {
   ReservationsModule,
@@ -36,6 +38,8 @@ const pageLabels: Record<Page, string> = {
   roles: "Rôles et accès",
   properties: "Logements",
   reservations: "Réservations",
+  calendar: "Calendrier",
+  tasks: "Tâches",
 };
 export function HostFlowApp({
   page,
@@ -146,7 +150,7 @@ export function HostFlowApp({
         }}
         busy={busy}
       />
-      <SidebarInset className="min-w-0 bg-background">
+      <SidebarInset className="hf-shell-main min-w-0 bg-background">
         <header className="flex h-[76px] items-center justify-between gap-3 border-b bg-white px-5 md:px-9">
           <div className="flex items-center gap-3 text-sm">
             <SidebarTrigger
@@ -160,7 +164,7 @@ export function HostFlowApp({
             <span className="font-medium">{pageLabels[page]}</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="hf-tag hidden lg:inline-flex">HostFlow v0.4.1</span>
+            <span className="hf-tag hidden lg:inline-flex">HostFlow v0.6</span>
             <Button
               size="icon"
               variant="ghost"
@@ -170,18 +174,27 @@ export function HostFlowApp({
               <CircleHelp className="size-[19px] text-[#6e7e7a]" />
             </Button>
             <span className="h-6 w-px bg-border hidden lg:inline" />
-            <Link
-              prefetch={false}
-              href={state.user ? "/settings" : "/login"}
-              aria-label={state.user ? "Mon compte" : "Se connecter"}
-              className="hf-avatar"
-            >
-              {active ? (
-                initials(active.display_name)
+            <>
+              {loading ? (
+                <Skeleton
+                  className="size-[34px] rounded-full"
+                  aria-label="Vérification du compte"
+                />
               ) : (
-                <UserRound className="size-4" />
+                <Link
+                  prefetch={false}
+                  href={state.user ? "/settings" : "/login"}
+                  aria-label={state.user ? "Mon compte" : "Se connecter"}
+                  className="hf-avatar"
+                >
+                  {active ? (
+                    initials(active.display_name)
+                  ) : (
+                    <UserRound className="size-4" />
+                  )}
+                </Link>
               )}
-            </Link>
+            </>
           </div>
         </header>
         <div id="main" className="hf-page">
@@ -200,15 +213,21 @@ export function HostFlowApp({
             </div>
           ) : null}
           {loading ? (
-            <div aria-label="Chargement de votre espace" className="grid gap-6">
-              <Skeleton className="h-20 w-2/3" />
-              <Skeleton className="h-36 w-full" />
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {[0, 1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-36" />
-                ))}
-              </div>
-            </div>
+            <PageLoading
+              label="Chargement de votre espace"
+              variant={
+                page === "dashboard"
+                  ? "dashboard"
+                  : propertyView === "new" ||
+                      propertyView === "edit" ||
+                      reservationView === "new" ||
+                      reservationView === "edit"
+                    ? "form"
+                    : propertyView === "detail" || reservationView === "detail"
+                      ? "detail"
+                      : "list"
+              }
+            />
           ) : (!error || !!state.user) &&
             (!state.configured || state.user) &&
             (!state.configured ||
@@ -254,6 +273,12 @@ export function HostFlowApp({
                 />
               )}
               {page === "roles" && <Roles />}
+              {page === "tasks" && (
+                <TasksModule key={active?.organization_id} active={active} />
+              )}
+              {page === "calendar" && (
+                <CalendarModule key={active?.organization_id} active={active} />
+              )}
               {page === "reservations" && (
                 <ReservationsModule
                   key={[
@@ -284,7 +309,7 @@ export function HostFlowApp({
         </div>
         <footer className="mt-auto flex justify-between gap-4 px-6 md:px-10 py-5 text-xs text-[#81908b]">
           <span>HostFlow · Tout commence par un espace bien organisé.</span>
-          <span className="hidden sm:block">Réservations · v0.4.1</span>
+          <span className="hidden sm:block">Operations · v0.6</span>
         </footer>
       </SidebarInset>
       <Roadmap open={roadmap} onOpenChange={setRoadmap} />

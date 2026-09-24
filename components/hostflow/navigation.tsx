@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { canReadTasks } from "@/lib/tasks/types";
 import { canEditProperties } from "@/lib/properties/types";
 import {
   ArrowRight,
@@ -23,7 +24,7 @@ import {
   Wrench,
   type LucideIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/hostflow/ui";
 import {
   Sidebar,
   SidebarContent,
@@ -50,10 +51,7 @@ import {
   type WorkspaceState,
   type Membership,
 } from "@/lib/hostflow/types";
-const upcoming: [string, LucideIcon][] = [
-  ["Calendrier", CalendarDays],
-  ["Propriétaires", UserRound],
-];
+const upcoming: [string, LucideIcon][] = [["Propriétaires", UserRound]];
 export function Navigation({
   page,
   state,
@@ -199,12 +197,23 @@ export function Navigation({
             !active || !canEditProperties(active.role),
           )}
           {upcoming.map(([label, Icon]) => future(label, Icon))}
+          {link(
+            "Calendrier",
+            CalendarDays,
+            "/calendar",
+            "calendar",
+            !active || !canEditProperties(active.role),
+          )}
         </SidebarMenu>
         <div className="hf-nav-label">Opérations</div>
         <SidebarMenu className="gap-1">
-          {future("Missions", ClipboardList)}
-          {future("Ménages", Sparkles)}
-          {future("Maintenance", Wrench)}
+          {link(
+            "Tâches",
+            ClipboardList,
+            "/tasks",
+            "tasks",
+            !active || !canReadTasks(active.role),
+          )}
           {link(
             "Équipe",
             Users,
@@ -240,7 +249,7 @@ export function Navigation({
                 ? "Chargement…"
                 : (active?.display_name ?? "Votre compte")}
             </div>
-            <div className="text-[11px] text-[#839089] mt-1 truncate">
+            <div className="text-[11px] text-[#839089] mt-1 min-h-4 truncate">
               {loading
                 ? ""
                 : active

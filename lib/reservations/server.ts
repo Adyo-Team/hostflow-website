@@ -5,6 +5,7 @@ import { AppError, checkDb } from "@/lib/hostflow/errors";
 import { safeOrigin } from "@/lib/hostflow/request-security";
 import { canManageReservations } from "./types";
 import { reservationInput, blockInput, stayListInput } from "./validation";
+import { validDate, dayDistance } from "@/lib/calendar/dates.mjs";
 const headers = {
   "Cache-Control": "private, no-store, max-age=0",
   Vary: "Cookie",
@@ -99,6 +100,33 @@ export async function handleReservations(
         403,
       );
     if (path.length > 2) throw new AppError("Page introuvable.", 404);
+    if (request.method === "GET" && path.length === 1 && path[0] === "calendar") {
+      const start = params.get("start") || "";
+      const end = params.get("end") || "";
+      const page = z.coerce.number().int().min(1).max(10000).parse(params.get("page") || 1);
+      if (!validDate(start) || !validDate(end) || dayDistance(start, end) < 1 || dayDistance(start, end) > 31)
+        throw new AppError("Choisissez une période valide de 1 à 31 jours.");
+      const properties = await db.from("properties").select("id,name,capacity,status", { count: "exact" })
+        .eq("organization_id", org).neq("status", "archived").order("name").order("id").range((page - 1) * 30, page * 30 - 1);
+      checked(properties.error);
+      const ids = (properties.data || []).map(p => p.id);
+      // Page resources, not days. Never silently truncate a busy period at the API row limit.
+      async function collect(kind: "reservations" | "property_blocks") {
+        const rows = [];
+        for (let offset = 0; offset < 10000; offset += 500) {
+          const q = kind === "reservations"
+            ? db.from("reservations").select("id,property_id,guest_name,check_in,check_out,status").eq("status", "confirmed").lt("check_in", end).gt("check_out", start)
+            : db.from("property_blocks").select("id,property_id,start_date,end_date,reason").eq("active", true).lt("start_date", end).gt("end_date", start);
+          const r = await q.eq("organization_id", org).in("property_id", ids).order("id").range(offset, offset + 499);
+          checked(r.error);
+          rows.push(...(r.data || []));
+          if ((r.data || []).length < 500) return rows;
+        }
+        throw new AppError("Trop de séjours sur cette période. Réduisez la période affichée.", 422);
+      }
+      const [reservations, blocks] = ids.length ? await Promise.all([collect("reservations"), collect("property_blocks")]) : [[], []];
+      return reply({ properties: properties.data || [], total: properties.count || 0, reservations, blocks });
+    }
     const isBlock = path[0] === "blocks";
     const id = isBlock ? path[1] : path[0];
     if (request.method === "GET" && path[0] === "options") {

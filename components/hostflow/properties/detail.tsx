@@ -16,7 +16,7 @@ import {
   EyeOff,
   Layers3,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/hostflow/ui";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState, countryItems } from "../shared";
 import {
@@ -35,6 +35,7 @@ import {
   ConfirmPropertyAction,
 } from "./shared";
 import { PropertyPhotos } from "./photos";
+import { LinkedTasks } from "../tasks/module";
 import { PropertyStays } from "../reservations/module";
 function Value({
   label,
@@ -66,7 +67,7 @@ export function PropertyDetail({
   const [confirmation, setConfirmation] = useState(false);
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState("");
-  if (loading && !data) return <PropertyLoading />;
+  if (loading && !data) return <PropertyLoading variant="detail" />;
   if (error) return <PropertyFailure error={error} retry={reload} />;
   if (!data) return null;
   const p = data.property;
@@ -202,7 +203,7 @@ export function PropertyDetail({
         </p>
       )}
       <Tabs defaultValue="overview" className="gap-6">
-        <div className="overflow-x-auto border-b">
+        <div className="overflow-x-auto overflow-y-hidden border-b">
           <TabsList variant="line" className="h-12 min-w-max gap-4">
             <TabsTrigger value="overview" className="px-3">
               Vue d’ensemble
@@ -372,6 +373,8 @@ export function PropertyDetail({
           <TabsContent key={key} value={key}>
             {key === "reservations" ? (
               <PropertyStays org={active.organization_id} propertyId={id} />
+            ) : key === "operations" ? (
+              <LinkedTasks active={active} propertyId={id} />
             ) : (
               <section className="hf-panel">
                 <EmptyState

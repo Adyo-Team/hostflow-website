@@ -33,6 +33,7 @@ export async function proxy(request: NextRequest) {
       "/team",
       "/settings",
       "/roles",
+      "/calendar",
       "/onboarding",
       "/welcome",
       "/reset-password",
@@ -63,6 +64,7 @@ export async function proxy(request: NextRequest) {
 }
 export const config = {
   matcher: [
+    "/calendar",
     "/reservations/:path*",
     "/properties/:path*",
     "/",

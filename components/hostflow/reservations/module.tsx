@@ -1,9 +1,18 @@
 "use client";
+import { LinkedTasks } from "../tasks/module";
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { validDate } from "@/lib/calendar/dates.mjs";
 import { Plus, ArrowLeft, CalendarDays, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  PageHeader,
+  PageLoading,
+  StatusBadge,
+  Pager,
+  FilterBar,
+  Button,
+} from "@/components/hostflow/ui";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -43,63 +52,26 @@ function Failure({ error, retry }: { error: string; retry: () => void }) {
     </div>
   );
 }
-function Loading() {
+function Loading({
+  variant = "list",
+  header = true,
+}: {
+  variant?: "list" | "detail" | "form";
+  header?: boolean;
+}) {
   return (
-    <p role="status" className="hf-panel hf-muted">
-      Chargement…
-    </p>
+    <PageLoading
+      label="Chargement des réservations"
+      variant={variant}
+      header={header}
+    />
   );
 }
 function Status({ status }: { status: Reservation["status"] }) {
   return (
-    <span
-      className={
-        "rounded-full px-3 py-1 text-sm " +
-        (status === "confirmed"
-          ? "bg-[#e5f3eb] text-[#246747]"
-          : "bg-[#eef0f1] text-[#69777a]")
-      }
-    >
+    <StatusBadge tone={status === "confirmed" ? "success" : "neutral"}>
       {reservationStatuses[status]}
-    </span>
-  );
-}
-function Pager({
-  page,
-  total,
-  setPage,
-  embedded = false,
-}: {
-  page: number;
-  total: number;
-  setPage: (p: number) => void;
-  embedded?: boolean;
-}) {
-  return (
-    <div
-      className={
-        "flex flex-wrap items-center gap-3 justify-between sm:justify-end text-sm " +
-        (embedded ? "border-t bg-[#fbfcfb] px-4 py-3 sm:px-5" : "mt-5")
-      }
-    >
-      <span className="hf-muted">
-        {total} résultat{total > 1 ? "s" : ""} · page {page}
-      </span>
-      <Button
-        variant="outline"
-        disabled={page <= 1}
-        onClick={() => setPage(page - 1)}
-      >
-        Précédent
-      </Button>
-      <Button
-        variant="outline"
-        disabled={page * 30 >= total}
-        onClick={() => setPage(page + 1)}
-      >
-        Suivant
-      </Button>
-    </div>
+    </StatusBadge>
   );
 }
 export function ReservationsModule({
@@ -136,18 +108,18 @@ export function ReservationsModule({
     );
   return (
     <>
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-7">
-        <div>
-          <p className="hf-overline mb-3">Vos séjours</p>
-          <h1 className="hf-heading">Réservations</h1>
-        </div>
-        <Button asChild>
-          <Link prefetch={false} href="/reservations/new">
-            <Plus />
-            Nouvelle réservation
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Vos séjours"
+        title="Réservations"
+        actions={
+          <Button asChild>
+            <Link prefetch={false} href="/reservations/new">
+              <Plus />
+              Nouvelle réservation
+            </Link>
+          </Button>
+        }
+      />
       <Tabs defaultValue="reservations">
         <TabsList>
           <TabsTrigger value="reservations">Réservations</TabsTrigger>
@@ -201,7 +173,7 @@ function ReservationRows({
   );
   return (
     <section className="hf-panel mt-5 overflow-hidden">
-      <div className="grid gap-4 border-b bg-[#fbfcfb] p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-4">
+      <FilterBar className="sm:grid-cols-2 xl:grid-cols-4">
         <Field
           label="Rechercher un voyageur"
           id="reservation-search"
@@ -250,14 +222,14 @@ function ReservationRows({
             ]}
           />
         )}
-      </div>
+      </FilterBar>
       {error ? (
         <div className="p-5">
           <Failure error={error} retry={reload} />
         </div>
       ) : loading ? (
         <div className="p-5">
-          <Loading />
+          <Loading header={false} />
         </div>
       ) : data?.items.length ? (
         <div>
@@ -335,7 +307,7 @@ function ReservationPage({
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState("");
   if (error) return <Failure error={error} retry={reload} />;
-  if (loading || !data) return <Loading />;
+  if (loading || !data) return <Loading variant={edit ? "form" : "detail"} />;
   if (edit)
     return (
       <ReservationForm
@@ -381,10 +353,10 @@ function ReservationPage({
         <ArrowLeft />
         Toutes les réservations
       </Link>
-      <div className="flex flex-wrap justify-between gap-4 mb-7">
-        <div>
-          <p className="hf-overline mb-3">Réservation</p>
-          <h1 className="hf-heading break-words">{r.guest_name}</h1>
+      <PageHeader
+        eyebrow="Réservation"
+        title={r.guest_name}
+        description={
           <Link
             href={"/properties/" + r.property_id}
             prefetch={false}
@@ -392,21 +364,23 @@ function ReservationPage({
           >
             {data.property.name}
           </Link>
-        </div>
-        <div className="flex items-center flex-wrap gap-3">
-          <Status status={r.status} />
-          <Button asChild variant="outline">
-            <Link href={"/reservations/" + id + "/edit"} prefetch={false}>
-              Modifier
-            </Link>
-          </Button>
-          {r.status !== "cancelled" && (
-            <Button variant="outline" onClick={() => setConfirm(true)}>
-              Annuler la réservation
+        }
+        actions={
+          <div className="flex items-center flex-wrap gap-3">
+            <Status status={r.status} />
+            <Button asChild variant="outline">
+              <Link href={"/reservations/" + id + "/edit"} prefetch={false}>
+                Modifier
+              </Link>
             </Button>
-          )}
-        </div>
-      </div>
+            {r.status !== "cancelled" && (
+              <Button variant="outline" onClick={() => setConfirm(true)}>
+                Annuler la réservation
+              </Button>
+            )}
+          </div>
+        }
+      />
       {failure && (
         <p role="alert" className="hf-error mb-5">
           {failure}
@@ -430,6 +404,11 @@ function ReservationPage({
           ))}
         </dl>
       </section>
+      <LinkedTasks
+        active={active}
+        propertyId={r.property_id}
+        reservationId={r.id}
+      />
       <ConfirmPropertyAction
         open={confirm}
         onOpenChange={setConfirm}
@@ -457,9 +436,23 @@ function ReservationForm({
     properties: PropertyOption[];
   }>("/options", active.organization_id);
   const [id] = useState(() => initial?.id || createId());
-  const [property, setProperty] = useState(initial?.property_id || "");
-  const [arrival, setArrival] = useState(initial?.check_in || "");
-  const [departure, setDeparture] = useState(initial?.check_out || "");
+  const calendarParams = useSearchParams();
+  const calendarProperty = calendarParams.get("property_id") || "";
+  const calendarArrival = calendarParams.get("check_in") || "";
+  const calendarDeparture = calendarParams.get("check_out") || "";
+  const [property, setProperty] = useState(
+    initial?.property_id ||
+      (/^[0-9a-f-]{36}$/i.test(calendarProperty) ? calendarProperty : ""),
+  );
+  const [arrival, setArrival] = useState(
+    initial?.check_in || (validDate(calendarArrival) ? calendarArrival : ""),
+  );
+  const [departure, setDeparture] = useState(
+    initial?.check_out ||
+      (validDate(calendarDeparture) && calendarDeparture > calendarArrival
+        ? calendarDeparture
+        : ""),
+  );
   const [name, setName] = useState(initial?.guest_name || "");
   const [email, setEmail] = useState(initial?.guest_email || "");
   const [phone, setPhone] = useState(initial?.guest_phone || "");
@@ -527,7 +520,7 @@ function ReservationForm({
     }
   }
   if (error) return <Failure error={error} retry={reload} />;
-  if (loading) return <Loading />;
+  if (loading) return <Loading variant="form" />;
   return (
     <>
       <Link
@@ -538,14 +531,12 @@ function ReservationForm({
         <ArrowLeft />
         Retour
       </Link>
-      <div className="mb-7">
-        <p className="hf-overline mb-3">Vos séjours</p>
-        <h1 className="hf-heading">
-          {initial ? "Modifier la réservation" : "Nouvelle réservation"}
-        </h1>
-      </div>
+      <PageHeader
+        eyebrow="Vos séjours"
+        title={initial ? "Modifier la réservation" : "Nouvelle réservation"}
+      />
       <form
-        className="hf-panel max-w-4xl overflow-hidden"
+        className="hf-panel hf-form-panel overflow-hidden"
         onSubmit={save}
         onChange={() => setDirty(true)}
       >
@@ -768,7 +759,7 @@ function Blocks({ org, propertyId }: { org: string; propertyId?: string }) {
         </div>
       ) : loading ? (
         <div className="p-5">
-          <Loading />
+          <Loading header={false} />
         </div>
       ) : data?.items.length ? (
         <div className="divide-y">
@@ -795,7 +786,7 @@ function Blocks({ org, propertyId }: { org: string; propertyId?: string }) {
                 )}
               </div>
               {b.active && (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -814,9 +805,11 @@ function Blocks({ org, propertyId }: { org: string; propertyId?: string }) {
           ))}
         </div>
       ) : (
-        <p className="hf-muted px-5 py-6 sm:px-6">
-          Aucun blocage pour ces critères.
-        </p>
+        <EmptyState
+          compact
+          title="Aucun blocage"
+          description="Aucun blocage pour ces critères."
+        />
       )}
       {data && (
         <Pager page={page} total={data.total} setPage={setPage} embedded />

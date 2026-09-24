@@ -1,4 +1,5 @@
 "use client";
+import { PageHeader, Pager, FilterBar } from "@/components/hostflow/ui";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -10,14 +11,8 @@ import {
   ArrowUpRight,
   SlidersHorizontal,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/hostflow/ui";
 import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-} from "@/components/ui/pagination";
 import { EmptyState, Choice } from "../shared";
 import {
   typeLabels,
@@ -67,21 +62,21 @@ export function PropertyList({ organizationId }: { organizationId: string }) {
   );
   return (
     <>
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-7">
-        <div>
-          <div className="hf-overline mb-3">Votre portefeuille</div>
-          <h1 className="hf-heading">Logements</h1>
-          <p className="hf-subtitle">
-            Toutes les informations de vos logements, au même endroit.
-          </p>
-        </div>
-        <Button asChild className="h-11">
-          <Link prefetch={false} href="/properties/new">
-            <Plus className="size-4" />
-            Ajouter un logement
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Votre portefeuille"
+        title="Logements"
+        description="Toutes les informations de vos logements, au même endroit."
+        actions={
+          <>
+            <Button asChild className="h-11">
+              <Link prefetch={false} href="/properties/new">
+                <Plus className="size-4" />
+                Ajouter un logement
+              </Link>
+            </Button>
+          </>
+        }
+      />
       <section
         className="hf-panel p-5 mb-6 space-y-4"
         aria-label="Recherche et filtres"
@@ -100,7 +95,7 @@ export function PropertyList({ organizationId }: { organizationId: string }) {
             className="pl-10 h-11"
           />
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <FilterBar className="grid-cols-2 lg:grid-cols-4 hf-filter-inline">
           <Choice
             label="Statut"
             value={status}
@@ -143,12 +138,12 @@ export function PropertyList({ organizationId }: { organizationId: string }) {
               ["capacity", "Capacité croissante"],
             ]}
           />
-        </div>
+        </FilterBar>
       </section>
       {error ? (
         <PropertyFailure error={error} retry={reload} />
       ) : loading ? (
-        <PropertyLoading />
+        <PropertyLoading header={false} />
       ) : (
         data && (
           <>
@@ -247,43 +242,12 @@ export function PropertyList({ organizationId }: { organizationId: string }) {
               </div>
             )}
             {pages > 1 && (
-              <Pagination className="mt-7">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationLink
-                      size="default"
-                      aria-label="Page précédente"
-                      href="#"
-                      aria-disabled={page === 1}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (page > 1) setPage(page - 1);
-                      }}
-                    >
-                      Précédent
-                    </PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <span className="px-3 text-sm">
-                      {page} / {pages}
-                    </span>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink
-                      size="default"
-                      aria-label="Page suivante"
-                      href="#"
-                      aria-disabled={page >= pages}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (page < pages) setPage(page + 1);
-                      }}
-                    >
-                      Suivant
-                    </PaginationLink>
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+              <Pager
+                page={page}
+                total={data?.total ?? 0}
+                pageSize={data?.pageSize ?? 12}
+                setPage={setPage}
+              />
             )}
           </>
         )

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useId } from "react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,16 +45,31 @@ export function Brand({ light = false }: { light?: boolean }) {
     </Link>
   );
 }
+export function FormField({
+  label,
+  id,
+  children,
+}: {
+  label: string;
+  id: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="hf-field">
+      <Label htmlFor={id}>{label}</Label>
+      {children}
+    </div>
+  );
+}
 export function Field({
   label,
   id,
   ...props
 }: React.ComponentProps<typeof Input> & { label: string; id: string }) {
   return (
-    <div className="hf-field">
-      <Label htmlFor={id}>{label}</Label>
+    <FormField label={label} id={id}>
       <Input id={id} {...props} />
-    </div>
+    </FormField>
   );
 }
 export function RoleSelect({
@@ -99,11 +115,11 @@ export function Choice({
   items: [string, string][];
   disabled?: boolean;
 }) {
+  const id = useId();
   return (
-    <div className="hf-field">
-      <label>{label}</label>
+    <FormField label={label} id={id}>
       <Select value={value} onValueChange={onChange} disabled={disabled}>
-        <SelectTrigger aria-label={label} className="w-full h-11">
+        <SelectTrigger id={id} aria-label={label} className="w-full h-11">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -114,7 +130,7 @@ export function Choice({
           ))}
         </SelectContent>
       </Select>
-    </div>
+    </FormField>
   );
 }
 export function EmptyState({

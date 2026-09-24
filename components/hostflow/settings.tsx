@@ -1,8 +1,9 @@
 "use client";
+import { PageHeader } from "./ui";
 import Link from "next/link";
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/hostflow/ui";
 import {
   Field,
   Choice,
@@ -49,13 +50,11 @@ export function Settings({
   const admin = canManageTeam(active?.role);
   return (
     <>
-      <div className="mb-7">
-        <div className="hf-overline mb-3">Votre organisation</div>
-        <h1 className="hf-heading">Paramètres</h1>
-        <p className="hf-subtitle">
-          Un espace qui correspond à votre façon de travailler.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Votre organisation"
+        title="Paramètres"
+        description="Un espace qui correspond à votre façon de travailler."
+      />
       {state.user ? (
         <div className="grid xl:grid-cols-[1.3fr_1fr] gap-6">
           <AccessGate state={state} active={active}>
