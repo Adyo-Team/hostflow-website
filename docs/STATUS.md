@@ -2,7 +2,7 @@
 
 Version fonctionnelle : **v0.6 — Operations / Tasks**.
 
-État vérifié dans le repository le 26 septembre 2026, sur la base du commit `528a4f0` (`feat: sync HostFlow v0.6 Operations / Tasks`). Le code fait foi ; les anciens rapports documentent leurs validations historiques, pas l'état actuel du déploiement.
+État vérifié dans le repository le 26 septembre 2026, après le commit `4b09dfa` (`chore: initialize Codex project workflow`), avec les métadonnées alignées sur v0.6. Le code fait foi ; les anciens rapports documentent leurs validations historiques, pas l'état actuel du déploiement.
 
 ## Architecture et stack
 
@@ -63,7 +63,9 @@ Résultats du 26 septembre 2026 :
 | --- | --- |
 | `pnpm typecheck` | Réussi. |
 | `pnpm test` | 119 tests réussis, aucun échec ni test ignoré. |
-| `pnpm build` | Échec avant compilation : `spawnSync npm ENOENT` dans `scripts/run-framework.mjs`, lors du lancement du typecheck intégré. |
+| `pnpm build` | Réussi sous Windows : checks pnpm intégrés puis compilation de production Vinext terminée, code de sortie 0. |
+
+Le build signale des avertissements non bloquants sur le temps passé dans les plugins et la classification statique de certaines routes. Aucun échec de compilation.
 
 Les tests couvrent notamment l'isolation des tenants, les rôles, invitations et profils, Properties/Storage, les conflits réservations/blocages, Calendar, Tasks et la gestion du workspace. Les suites PGlite exécutent les migrations avec un contrat Auth de test ; elles ne remplacent pas des sessions Supabase réelles, la concurrence multiprocessus ou la recette navigateur.
 
@@ -71,13 +73,13 @@ Non exécutés dans cette tâche : tests distants/SQL distants, parcours navigat
 
 ## Problèmes et limites constatés
 
-- Le lanceur de build ne parvient pas à démarrer `npm` via `spawnSync` dans cet environnement Windows. La compilation de production reste non validée ; aucune correction effectuée.
 - Aucun `.env.local` ni variable `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `APP_URL` détectés dans l'environnement inspecté. Le développement connecté à Supabase n'est pas configuré ici.
 - `proxy.ts` omet `/tasks` dans son matcher et sa liste de pages privées. Le shell effectue une redirection client, et l'API Tasks ainsi que la RLS vérifient toujours les accès ; ce constat ne démontre pas une exposition des données.
-- Versions/documentation désynchronisées : `package.json` indique 0.5.0, le README v0.4.1 et certaines sections d'architecture décrivent encore des modules livrés comme futurs. La roadmap de l'interface contient aussi des libellés obsolètes.
-- `AGENTS.md` est ignoré par le `.gitignore` existant. Il sert localement mais ne sera pas inclus par un ajout Git ordinaire ; son inclusion devra être traitée explicitement lors d'une future demande de versionnement. Le `.gitignore` n'a pas été modifié.
+- `package.json` (0.6.0) et l'introduction du README sont alignés sur v0.6. Certaines sections de l'ancienne documentation d'architecture et la roadmap de l'interface décrivent encore des modules livrés comme futurs.
 
-L'environnement permet de travailler sur le code et d'exécuter typecheck/tests. La configuration Supabase et le build Windows restent à traiter avant de considérer la chaîne locale complète comme prête.
+`AGENTS.md` est désormais versionné. Le lanceur `scripts/run-framework.mjs` exécute les checks via le point d'entrée pnpm avec Node, sans dépendre des scripts de lancement Windows de npm.
+
+L'environnement permet de travailler sur le code. La configuration Supabase reste à traiter pour le développement connecté ; la compilation locale ne valide pas la connexion à la base distante.
 
 ## Prochaine milestone
 

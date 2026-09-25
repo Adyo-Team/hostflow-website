@@ -1,6 +1,6 @@
 # HostFlow
 
-HostFlow est un SaaS B2B multi-tenant destiné aux conciergeries de location courte durée. La version actuelle (`v0.4.1`) comprend l’authentification, les organisations et rôles, l’équipe, les logements, les photos privées, les réservations manuelles et les blocages de disponibilité.
+HostFlow est un SaaS B2B multi-tenant destiné aux conciergeries de location courte durée. La version actuelle (`v0.6 — Operations / Tasks`) comprend l’authentification, les organisations et rôles, l’équipe, les logements, les photos privées, les réservations manuelles, les blocages de disponibilité, le calendrier et la gestion des tâches opérationnelles.
 
 Chaque conciergerie est une `Organization`. L’isolation des données est assurée dans PostgreSQL par les memberships, les rôles et la Row Level Security (RLS). Les conflits de réservation utilisent des intervalles `[arrivée, départ)` et une contrainte d’exclusion PostgreSQL transactionnelle.
 
