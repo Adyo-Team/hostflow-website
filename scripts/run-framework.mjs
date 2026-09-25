@@ -8,8 +8,14 @@ if (!["dev", "build"].includes(command))
 const managedLinux = readExecutionProfile() === "managed-linux";
 // Keep quality checks in the existing build workflow, for both execution profiles.
 if (command === "build") {
+  const pnpmPath = process.env.npm_execpath;
+  if (!pnpmPath || !process.env.npm_config_user_agent?.startsWith("pnpm/"))
+    throw new Error("Run the build with pnpm build.");
   for (const script of ["typecheck", "test"]) {
-    const result = spawnSync("npm", ["run", script], { stdio: "inherit" });
+    // Reuse pnpm's entrypoint without relying on Windows shell shims.
+    const result = spawnSync(process.execPath, [pnpmPath, "run", script], {
+      stdio: "inherit",
+    });
     if (result.error) throw result.error;
     if (result.status !== 0) process.exit(result.status ?? 1);
   }

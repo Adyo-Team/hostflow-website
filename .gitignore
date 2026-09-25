@@ -47,7 +47,6 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
-/AGENTS.md
 /CLAUDE.md
 
 !.env.example
