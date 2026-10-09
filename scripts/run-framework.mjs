@@ -9,11 +9,15 @@ if (command === "build") {
   const pnpmPath = process.env.npm_execpath;
   if (!pnpmPath || !process.env.npm_config_user_agent?.startsWith("pnpm/"))
     throw new Error("Run the build with pnpm build.");
+  // Corepack uses a JS entrypoint; Railpack/Mise installs a native executable.
+  const nodeEntrypoint = /\.(?:c?js|mjs)$/i.test(pnpmPath);
   for (const script of ["typecheck", "test"]) {
-    // Reuse pnpm's entrypoint without relying on Windows shell shims.
-    const result = spawnSync(process.execPath, [pnpmPath, "run", script], {
-      stdio: "inherit",
-    });
+    // Reuse the running pnpm without relying on Windows shell shims.
+    const result = spawnSync(
+      nodeEntrypoint ? process.execPath : pnpmPath,
+      [...(nodeEntrypoint ? [pnpmPath] : []), "run", script],
+      { stdio: "inherit" },
+    );
     if (result.error) throw result.error;
     if (result.status !== 0) process.exit(result.status ?? 1);
   }
