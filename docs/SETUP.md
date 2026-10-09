@@ -1,20 +1,22 @@
 # Mise en service de HostFlow
 
-## Statut du raccordement
+## Historique du raccordement
 
-Le projet Supabase `hostflow` (`zwcrmcuptrccglkijfls`) est raccordé. Les six migrations versionnées, jusqu’à `20260921140121_reservations_core`, sont appliquées. Elles couvrent le socle Organizations/Memberships/Roles, Properties, Reservations, Property Blocks, la RLS et la protection transactionnelle contre les chevauchements. Les variables serveur de HostFlow pointent vers ce projet ; aucune clé privilégiée n’est utilisée dans l’application.
+L'historique du raccordement concerne le projet Supabase `hostflow` (`zwcrmcuptrccglkijfls`). Il documentait six migrations appliquées, jusqu’à `20260921140121_reservations_core`. Elles couvrent le socle Organizations/Memberships/Roles, Properties, Reservations, Property Blocks, la RLS et la protection transactionnelle contre les chevauchements. Aucune clé privilégiée n’est utilisée dans l’application. Le repository contient désormais également la migration Operations / Tasks ; cet historique ne confirme pas son application distante actuelle.
 
 La RLS a été testée sur PostgreSQL distant puis avec les vrais JWT de trois comptes Auth de test explicitement autorisés. Connexions, invitations, rôles, retrait, isolation Alpha/Beta et restauration des cookies sur une route privée ont réussi. Les comptes de test et leurs données ont été supprimés en préservant les comptes existants. L’API Auth est accessible, les inscriptions email sont activées et la confirmation email est obligatoire. La livraison et l’ouverture des emails de confirmation/récupération restent à vérifier.
 
-Le connecteur permet les migrations mais ne propose pas de réglage Auth URL/SMTP ni de création de comptes Auth. La CLI n’a pas de jeton de gestion configuré. Vérifier les URL et le SMTP directement dans le dashboard Supabase avant la validation des inscriptions ; ne pas désactiver la confirmation email pour contourner cette étape.
+Les accès de gestion constatés à cette date ne permettaient pas de régler Auth URL/SMTP ni de créer des comptes Auth. Vérifier les URL et le SMTP dans le dashboard Supabase avant la validation des inscriptions ; ne pas désactiver la confirmation email pour contourner cette étape.
+
+La préparation Railway conserve Supabase et n’exécute aucune migration. Le staging doit recevoir ses propres variables serveur. Les réglages à appliquer sans perturber Sites sont décrits dans [RAILWAY.md](RAILWAY.md).
 
 ## Raccorder le projet Supabase
 
 1. Projet sélectionné et inspecté : `zwcrmcuptrccglkijfls`, région `eu-west-1`. Réutiliser ce projet, sans réappliquer les migrations déjà enregistrées.
-2. Les fichiers de `supabase/migrations/` portent les mêmes versions que l’historique distant et sont immuables. `pgcrypto` et `btree_gist` sont présents dans `extensions`.
-3. Dans Auth → URL Configuration, vérifier Site URL = `https://hostflow.jeeddd.chatgpt.site` et les Redirect URLs `https://hostflow.jeeddd.chatgpt.site/auth/confirm` et `https://hostflow.jeeddd.chatgpt.site/auth/confirm?flow=recovery`. Maintenir la confirmation email active.
+2. Les migrations déjà appliquées sont immuables. Vérifier l’historique distant avant toute évolution de schéma ; la migration d’hébergement ne demande aucun changement SQL.
+3. Dans Auth → URL Configuration, conserver la Site URL et les Redirect URLs existantes pour Sites. Ajouter les callbacks HTTPS du staging Railway, sans retirer les callbacks actuels. Maintenir la confirmation email active.
 4. Configurer un SMTP de production avec votre domaine pour les confirmations et récupérations. Les invitations d’équipe du socle génèrent un lien à copier ; elles n’envoient aucun email.
-5. Les variables **serveur** suivantes sont configurées dans l’hébergement :
+5. Renseigner les variables **serveur** suivantes dans chaque hébergement :
 
 | Variable                 | Valeur attendue                                             |
 | ------------------------ | ----------------------------------------------------------- |
@@ -26,7 +28,9 @@ En développement natif : copier `.env.example` en `.env.local` puis renseigner 
 
 ## Confirmation email et récupération
 
-Le callback prend en charge le flux PKCE `?code=…` de Supabase. L’utilisateur doit ouvrir le lien dans le navigateur ayant initié la demande. Pour les confirmations sur un autre appareil, adapter les modèles email Supabase à l’URL `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`. Pour la récupération, utiliser `type=recovery`. Le serveur valide le jeton via Supabase puis redirige vers une destination fixe. Ne jamais insérer le token dans les logs.
+Le callback prend en charge le flux PKCE `?code=…` de Supabase. L’utilisateur doit ouvrir le lien dans le navigateur ayant initié la demande. Il accepte aussi `token_hash` avec `type=email` ou `type=recovery`, pour les modèles email adaptés aux confirmations sur un autre appareil. Le serveur valide le jeton via Supabase puis redirige vers une destination fixe. Ne jamais insérer le token dans les logs.
+
+Un modèle utilisant `{{ .SiteURL }}` fixe la destination sur le site principal, même si la demande vient du staging. `{{ .RedirectTo }}` contient la destination demandée par l’application : ici elle inclut déjà `/auth/confirm`, et la récupération ajoute `?flow=recovery`. Ne pas ajouter une seconde fois le chemin ni concaténer un second `?`. Ne pas modifier un modèle partagé avec la production pour ce premier staging ; vérifier les emails réels et signaler ce blocage si leur destination reste Sites. Voir les [modèles Supabase](https://supabase.com/docs/guides/auth/auth-email-templates).
 
 Après confirmation, l’utilisateur arrive sur `/welcome`. Son compte et son profil existent indépendamment de toute organisation. Il peut ouvrir ou coller une invitation pour rejoindre une équipe, ou attendre une invitation. Seul un responsable souhaitant créer sa conciergerie choisit `/onboarding` ; cette transaction crée également son premier owner. Le compte peut ensuite appartenir à plusieurs organisations et passer de l’une à l’autre via le sélecteur.
 
@@ -38,9 +42,9 @@ Le projet utilise pnpm et son lockfile. Node 22.13 minimum, Node 24 testé.
 pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm test
-pnpm dev:next
-pnpm build:next
-pnpm start:next
+pnpm dev
+pnpm build
+pnpm start
 ```
 
 Une stack Supabase locale reproductible est également configurée :
@@ -52,7 +56,7 @@ pnpm exec supabase db reset
 
 La deuxième commande est destructive uniquement pour la base locale. Ne jamais ajouter `--linked` contre la production. Le seed versionné est volontairement vide et ne contient aucune donnée utilisateur.
 
-Le runtime Sites possède ses propres commandes `dev` / `build` basées sur Vinext. Les pages suivent Next.js App Router ; le backend est indépendant du runtime d’hébergement. Ne pas relancer un initializer sur ce projet.
+Les commandes principales utilisent désormais Next.js sur Node.js. `pnpm build` lance le typecheck et les tests avant compilation ; `pnpm start` écoute sur `0.0.0.0` et le port `PORT` ou `3000`. En local, ne pas définir `NODE_ENV=production` pour `pnpm dev`. Ne pas relancer un initializer sur ce projet.
 
 ## Vérifications avant activation réelle
 

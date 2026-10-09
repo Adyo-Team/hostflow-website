@@ -9,9 +9,9 @@ Chaque conciergerie est une `Organization`. L’isolation des données est assur
 - Next.js 16 App Router, React 19 et TypeScript ;
 - Tailwind CSS 4 et composants shadcn ;
 - Supabase Auth, PostgreSQL, Storage et Edge Functions ;
-- Vinext/Vite et Cloudflare Workers pour l’hébergement Sites ;
+- runtime Node.js Next.js natif, préparé pour Railway ;
 - pnpm 11 avec lockfile versionné ;
-- Node.js 22.13 minimum.
+- Node.js 22.13 minimum, Node.js 24 pour Railway.
 
 ## Structure
 
@@ -26,7 +26,7 @@ supabase/migrations/     Schéma SQL versionné, RLS, fonctions et triggers
 supabase/functions/      Edge Functions versionnées
 tests/                   Tests unitaires, PostgreSQL et parcours distants
 docs/                    Architecture, audits et validations par version
-scripts/                 Installation, build et adaptation Sites
+scripts/                 Lanceur Node de développement, build et production
 ```
 
 ## Installation
@@ -49,15 +49,17 @@ APP_URL=http://localhost:3000
 
 HostFlow n’utilise pas de clé `service_role` pour fonctionner. Une clé secrète Supabase ne doit jamais être placée dans une variable exposée au navigateur ni commitée dans Git.
 
+Les variables `NODE_ENV` et `RAILPACK_*` sont documentées en commentaires dans `.env.example` et se configurent dans Railway. Les laisser commentées dans `.env.local` ; Next.js choisit automatiquement son mode selon la commande.
+
 ## Développement local
 
-Le mode Next.js natif est le chemin le plus simple pour développer localement :
+Les commandes principales utilisent Next.js natif :
 
 ```bash
-pnpm dev:next
+pnpm dev
 ```
 
-Ouvrir `http://localhost:3000`. `APP_URL` doit être exactement cette origine. Le runtime portable utilisé par l’hébergement peut aussi être lancé avec `pnpm dev` ; il écoute par défaut sur le port `5173`, auquel cas il faut adapter `APP_URL`.
+Ouvrir `http://localhost:3000`. `APP_URL` doit être exactement cette origine. Les commandes `dev:next`, `build:next` et `start:next` sont conservées ; `build:next` compile directement, sans les checks préalables de `pnpm build`.
 
 ## Supabase
 
@@ -97,17 +99,26 @@ pnpm lint
 pnpm build
 ```
 
-`pnpm build` exécute également le typecheck et les tests avant le build Vinext de production. Le build Next.js natif reste disponible avec `pnpm build:next`.
+`pnpm build` exécute également le typecheck et les tests avant la compilation Next.js de production. Les dépendances de développement sont donc nécessaires pendant l’installation et le build.
 
-Après un build portable réussi :
+Après un build réussi :
 
 ```bash
 pnpm start
 ```
 
+Le serveur écoute sur `0.0.0.0`, au port `PORT` fourni par l’hébergeur ou au port `3000` en local. Supabase reste le backend ; aucun PostgreSQL Railway ni volume persistant n’est nécessaire.
+
+`pnpm test:production` vérifie le démarrage et les routes HTTP après compilation, sans envoyer d’identifiants à Supabase.
+
+## Railway staging
+
+Voir [le guide Railway](docs/RAILWAY.md) pour les commandes, les variables et la configuration Auth. La branche de migration est `codex/railway-migration`. Le déploiement Sites existant et la production restent en place jusqu’à validation de la bascule.
+
 ## Documentation
 
 - [Mise en service Supabase](docs/SETUP.md)
+- [Railway staging](docs/RAILWAY.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Properties v0.3](docs/PROPERTIES-v0.3.md)
 - [Reservations v0.4](docs/RESERVATIONS-v0.4.md)
