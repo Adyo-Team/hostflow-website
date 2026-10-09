@@ -35,9 +35,9 @@ Si staging réutilise le projet Supabase actuel, il partage ses comptes, ses don
 
 ## Déploiement depuis GitHub
 
-1. Publier la branche `codex/railway-migration` dans `Adyo-Team/Hostflow` après revue des changements. Ne pas committer `.env.local` ni les identifiants de gestion.
+1. Utiliser la branche publiée `codex/railway-migration` dans `Adyo-Team/hostflow-website`, le dépôt confirmé pour ce staging. Ne pas committer `.env.local` ni les identifiants de gestion.
 2. Créer un projet Railway vide pour HostFlow. S’il comporte un environnement `production` par défaut, créer un environnement vide `staging` via Settings → Environments et le sélectionner avant de créer un service. Laisser la production vide.
-3. Dans `staging`, ajouter le service Node depuis le repository GitHub `Adyo-Team/Hostflow`. Autoriser ce repository dans l’intégration GitHub si nécessaire. Configurer la branche source sur `codex/railway-migration`.
+3. Dans le service `hostflow-staging` existant, ouvrir Settings → Source et connecter le repository GitHub `Adyo-Team/hostflow-website`. S'il n'est pas proposé, ouvrir la configuration de l'application Railway dans les réglages GitHub et lui accorder accès à ce repository. Vérifier aussi que le compte GitHub connecté à Railway a accès au dépôt. Configurer la branche source sur `codex/railway-migration`.
 4. Dans Settings du service, choisir Railpack, Root Directory `/`, Build Command `pnpm build` et Start Command `pnpm start`. Le `package.json` est à la racine Git ; le nom local `hostflow-website` ne doit pas devenir un sous-dossier Railway.
 5. Renseigner les variables ci-dessus. Dans Networking → Public Networking, générer un domaine Railway ; reporter son origine HTTPS dans `APP_URL`.
 6. Vérifier que les modifications sont limitées à `staging`, puis lancer le déploiement. Contrôler l’installation, les checks, la compilation et le démarrage dans les logs. Attendre le statut réussi avant la recette HTTP.
@@ -79,10 +79,20 @@ Compléter avec un compte de test confirmé : connexion, rechargement d’une pa
 - `pnpm test` : 119 tests réussis, aucun échec ni test ignoré.
 - `pnpm build` : compilation Next.js 16.3.4 réussie, API dynamiques et proxy inclus.
 - `pnpm test:production` : 33 vérifications HTTP réussies sur le serveur Node compilé, avec un port injecté et une origine canonique HTTPS. Configuration Supabase factice locale ; ces tests ne valident pas une session Supabase réelle, les emails ni Storage.
+- `pnpm start` avec `PORT=3108` : serveur prêt sur `0.0.0.0:3108` ; `/login`, `/signup`, `/properties`, `/reservations`, `/calendar`, `/tasks` et `/api/hostflow` répondent en HTTP 200 sans backend configuré. Le serveur local a été arrêté après la vérification.
 
-Projet Railway : [HostFlow](https://railway.com/project/157732c3-1a4c-4a6b-a169-f39833f98c08), environnement `staging`, service `hostflow-staging`. Domaine réservé : `https://hostflow-staging-staging.up.railway.app`. La réservation du domaine seule ne prouve pas un déploiement réussi.
+Projet Railway : [HostFlow](https://railway.com/project/157732c3-1a4c-4a6b-a169-f39833f98c08), environnement `staging`, service `hostflow-staging`. Domaine staging : `https://hostflow-staging-staging.up.railway.app`. Le code de migration testé est présent dans `Adyo-Team/hostflow-website` sur la branche dédiée ; `main` reste inchangée. Le statut du build distant et la recette HTTPS doivent être vérifiés après le déploiement.
 
-Les variables publiques de connexion utilisent le backend HostFlow existant. La clé `SUPABASE_PUBLISHABLE_KEY` n'est pas accessible depuis la configuration Sites (valeur masquée) ; elle doit être renseignée directement dans Railway. Sans elle, l'application affiche son état de configuration existant et ne permet pas la connexion. Aucun réglage Auth partagé, migration ou donnée distante n'a été modifié.
+Les trois variables applicatives sont désormais présentes dans Railway, y compris `SUPABASE_PUBLISHABLE_KEY` ajoutée par l'utilisateur. Sa valeur est masquée par le connecteur et n'a pas été lue ni versionnée. Aucun réglage Auth partagé, migration ou donnée distante n'a été modifié.
+
+Le plugin GitHub a vérifié l'accès au dépôt `Adyo-Team/hostflow-website` et la présence du commit de migration `2a0d39d`. Les autorisations de ce dépôt sont disponibles dans l'organisation ; aucun changement d'installation sur un compte personnel n'est nécessaire pour cette source.
+
+Callbacks exacts à ajouter au projet Supabase conservé, sans changer sa Site URL actuelle :
+
+```text
+https://hostflow-staging-staging.up.railway.app/auth/confirm
+https://hostflow-staging-staging.up.railway.app/auth/confirm?flow=recovery
+```
 
 ## Sources de configuration
 

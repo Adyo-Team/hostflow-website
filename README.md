@@ -32,8 +32,8 @@ scripts/                 Lanceur Node de développement, build et production
 ## Installation
 
 ```bash
-git clone https://github.com/Adyo-Team/Hostflow.git
-cd Hostflow
+git clone https://github.com/Adyo-Team/hostflow-website.git
+cd hostflow-website
 corepack enable
 pnpm install --frozen-lockfile
 cp .env.example .env.local
